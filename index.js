@@ -38,7 +38,7 @@ var Redis_wrapper = function (config) {
     }
   };
   
-  var valid = ajv.validate(schema, event);
+  var valid = ajv.validate(schema, config);
   
   if (!valid) {
     var e = new Error(ajv.errorsText());
