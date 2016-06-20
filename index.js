@@ -15,7 +15,8 @@ Promise.promisifyAll(redis.Multi.prototype);
  * @param {function} config.validateKey - function to validate the keys
  * @returns {*}
  */
-exports.Redis_wrapper = function (config) {
+var Redis_wrapper = function (config) {
+  var self = this;
   
   var schema = {
     type                : 'object',
@@ -67,17 +68,14 @@ exports.Redis_wrapper = function (config) {
     });
   });
   
-  var Redis_wrapper = function () {
-    var self          = this;
-    self.name         = 'Redis_wrapper';
-    self.redis_url    = config.redis_uri;
-    self.port         = config.port;
-    self.db_number    = config.db_number;
-    self.redis_client = redis_client;
-    self.validateKey  = config.validateKey;
-  };
-  
-  require('./lib/index')(Redis_wrapper);
-  
-  return new Redis_wrapper();
+  self.name         = 'Redis_wrapper';
+  self.redis_url    = config.redis_uri;
+  self.port         = config.port;
+  self.db_number    = config.db_number;
+  self.redis_client = redis_client;
+  self.validateKey  = config.validateKey;
 };
+
+require('./lib/index')(Redis_wrapper);
+
+exports.Redis_wrapper = Redis_wrapper;
