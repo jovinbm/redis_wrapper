@@ -1,10 +1,10 @@
-var Promise = require('bluebird');
-var redis   = require('redis');
-var ajv     = require("ajv")({
+var BPromise = require('bluebird');
+var redis    = require('redis');
+var ajv      = require("ajv")({
   removeAdditional: false
 });
-Promise.promisifyAll(redis.RedisClient.prototype);
-Promise.promisifyAll(redis.Multi.prototype);
+BPromise.promisifyAll(redis.RedisClient.prototype);
+BPromise.promisifyAll(redis.Multi.prototype);
 
 /**
  *
@@ -15,7 +15,7 @@ Promise.promisifyAll(redis.Multi.prototype);
  * @param {function} config.validateKey - function to validate the keys
  * @returns {*}
  */
-var Redis_wrapper = function (config) {
+var RedisWrapper = function (config) {
   var self = this;
   
   var schema = {
@@ -68,14 +68,18 @@ var Redis_wrapper = function (config) {
     });
   });
   
-  self.name         = 'Redis_wrapper';
+  self.name         = 'RedisWrapper';
   self.host         = config.host;
   self.port         = config.port;
   self.db_number    = config.db_number;
   self.redis_client = redis_client;
   self.validateKey  = config.validateKey;
+  
+  self.bins = {
+    hash_keys_expire: 'bin:set_hash_keys_expire'
+  };
 };
 
-require('./lib/index')(Redis_wrapper);
+require('./lib/index')(RedisWrapper);
 
-exports.Redis_wrapper = Redis_wrapper;
+module.exports = RedisWrapper;
