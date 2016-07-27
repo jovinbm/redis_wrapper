@@ -11,11 +11,10 @@ var config = {
 
 var RedisWrapperInstance = new RedisWrapper(config);
 
-RedisWrapperInstance._hmset({
-  hash_name           : 'names',
+RedisWrapperInstance._mset({
   args                : {
-    first: 'JovinC',
-    last : 'Mwilanga'
+    key_name: 'jovin',
+    data    : 'jovin',
   },
   overwrite           : true,
   max_life_seconds    : 1000 * 3600,
