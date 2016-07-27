@@ -78,6 +78,8 @@ var RedisWrapper = function (config) {
   self.bins = {
     hash_keys_expire: 'bin:set_hash_keys_expire'
   };
+  
+  return self;
 };
 
 require('./lib/index')(RedisWrapper);
