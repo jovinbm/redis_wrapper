@@ -18,5 +18,6 @@ RedisWrapperInstance._hmset({
     last : 'Mwilanga'
   },
   overwrite           : true,
+  max_life_seconds    : 1000 * 3600,
   should_be_registered: false
 });
