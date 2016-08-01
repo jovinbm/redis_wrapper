@@ -51,7 +51,7 @@ var command2 = [
   'sample',
   0,
   'MATCH',
-  '$$START_METADATA$$key=Weaver*',
+  '$$START_METADATA$$key=Weaver$$sep$$id=*$$sep$$key_tag_name=*$$sep$$page=*$$END_METADATA$$',
   'COUNT',
   3000
 ];
