@@ -31,7 +31,6 @@ var config = {
 };
 
 var RedisWrapperInstance = new RedisWrapper(config);
-var redis_client         = RedisWrapperInstance.redis_client;
 
 var sample_data = {};
 require('./sample.json').map(function (d) {
@@ -46,39 +45,12 @@ require('./sample.json').map(function (d) {
 //  should_be_registered: false
 //});
 
-var command2 = [
-  'hscan',
-  'sample',
-  0,
-  'MATCH',
-  '$$START_METADATA$$key=Weaver$$sep$$id=*$$sep$$key_tag_name=*$$sep$$page=*$$END_METADATA$$',
-  'COUNT',
-  3000
-];
-
-var cursor    = 0;
-var hash_data = {};
-
-redis_client.multi([
-  command2
-])
-  .execAsync()
+RedisWrapperInstance._hscan({
+  hash_name           : 'sample',
+  match_pattern       : '$$START_METADATA$$key=Weaver$$sep$$id=*$$sep$$key_tag_name=*$$sep$$page=*$$END_METADATA$$',
+  count               : 100,
+  should_be_registered: false
+})
   .then(function (d) {
-    cursor = d[0][0];
-    
-    var data = d[0][1];
-    
-    data.map(function (k, i) {
-      if (i % 2 !== 0) {
-        // key starts at 0,
-        // even keys are values, 0 and other odd keys are hash_keys
-        return;
-      }
-      
-      hash_data[k] = data[i + 1];
-    });
-  })
-  .then(function () {
-    console.log(cursor);
-    console.log(hash_data);
+    console.log(d);
   });
