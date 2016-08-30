@@ -52,23 +52,18 @@ var RedisWrapper = function (config) {
   
   var redis_client;
   
-  redis_client = redis.createClient(config.port, config.host, {});
+  redis_client = redis.createClient({
+    host: config.host,
+    port: config.port,
+    db  : config.db_number
+  });
   
   redis_client.on("connect", function () {
     console.info('REDIS CLIENT CONNECTED TO SERVER');
   });
   
   redis_client.on("ready", function () {
-    
-    redis_client.select(config.db_number, function (e) {
-      if (e) {
-        console.error("FAILED TO CONNECT TO REDIS DB " + config.db_number);
-        throw e;
-      }
-      
-      console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number + " AT ADDRESS " + config.host + ":" + config.port);
-    });
-    
+    console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number + " AT ADDRESS " + config.host + ":" + config.port);
   });
   
   redis_client.on("reconnecting", function () {
