@@ -51,21 +51,37 @@ var RedisWrapper = function (config) {
   }
   
   var redis_client;
+  
   redis_client = redis.createClient(config.port, config.host, {});
   
-  redis_client.on("error", function (e) {
-    throw e;
+  redis_client.on("connect", function () {
+    console.info('REDIS CLIENT CONNECTED TO SERVER');
   });
   
   redis_client.on("ready", function () {
+    
     redis_client.select(config.db_number, function (e) {
-      console.info("SUCCESSFULLY CONNECTED TO REDIS DB " + config.db_number + " AT ADDRESS " + config.host + ":" + config.port);
-      
       if (e) {
         console.error("FAILED TO CONNECT TO REDIS DB " + config.db_number);
         throw e;
       }
+      
+      console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number + " AT ADDRESS " + config.host + ":" + config.port);
     });
+    
+  });
+  
+  redis_client.on("reconnecting", function () {
+    console.warn('REDIS CLIENT RECONNECTING');
+  });
+  
+  redis_client.on("error", function (e) {
+    console.error('REDIS CLIENT ERROR');
+    throw e;
+  });
+  
+  redis_client.on("end", function () {
+    console.error('REDIS CLIENT CONNECTION TO REDIS SERVER CLOSED');
   });
   
   self.name         = 'RedisWrapper';
