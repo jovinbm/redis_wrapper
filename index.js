@@ -127,7 +127,7 @@ var RedisWrapper = function (config) {
   
   client.on("error", function (e) {
     console.error('REDIS CLIENT ERROR');
-    throw e;
+    console.error(e);
   });
   
   client.on("end", function () {
