@@ -10,7 +10,7 @@ var ajv   = require("ajv")({
  * @param {string} config.host
  * @param {number} config.port
  * @param {object} [config.sentinel_options]
- * @param {string} [config.sentinel_options.master_name]
+ * @param {string} [config.sentinel_options.name]
  * @param {object[]} [config.sentinel_options.sentinels]
  * @param {function} config.validateKey - function to validate the keys
  * @returns {*}
@@ -25,14 +25,14 @@ var RedisWrapper = function (config) {
     properties          : {
       sentinel_options: {
         type                : 'object',
-        required            : ['master_name', 'sentinels'],
+        required            : ['name', 'sentinels'],
         additionalProperties: false,
         properties          : {
-          master_name: {
+          name     : {
             type     : 'string',
             minLength: 1
           },
-          sentinels  : {
+          sentinels: {
             type    : 'array',
             minItems: 1,
             items   : {
@@ -88,7 +88,7 @@ var RedisWrapper = function (config) {
     
     client = new Redis({
       sentinels     : config.sentinel_options.sentinels,
-      name          : config.sentinel_options.master_name,
+      name          : config.sentinel_options.name,
       db            : config.db_number,
       retry_strategy: function (options) {
         var error = options.error;
