@@ -9,6 +9,9 @@ var ajv   = require("ajv")({
  * @param {number} config.db_number
  * @param {string} config.host
  * @param {number} config.port
+ * @param {object} [config.sentinel_options]
+ * @param {string} [config.sentinel_options.master_name]
+ * @param {object[]} [config.sentinel_options.sentinels]
  * @param {function} config.validateKey - function to validate the keys
  * @returns {*}
  */
@@ -20,18 +23,48 @@ var RedisWrapper = function (config) {
     additionalProperties: false,
     required            : ['host', 'port', 'db_number', 'validateKey'],
     properties          : {
-      host       : {
+      sentinel_options: {
+        type                : 'object',
+        required            : ['master_name', 'sentinels'],
+        additionalProperties: false,
+        properties          : {
+          master_name: {
+            type     : 'string',
+            minLength: 1
+          },
+          sentinels  : {
+            type    : 'array',
+            minItems: 1,
+            items   : {
+              type                : 'object',
+              required            : ['host', 'port'],
+              additionalProperties: false,
+              properties          : {
+                host: {
+                  type     : 'string',
+                  minLength: 1
+                },
+                port: {
+                  type   : 'integer',
+                  minimum: 80
+                },
+              }
+            }
+          },
+        }
+      },
+      host            : {
         type     : 'string',
         minLength: 1
       },
-      port       : {
+      port            : {
         type   : 'integer',
         minimum: 80
       },
-      db_number  : {
+      db_number       : {
         type: 'integer'
       },
-      validateKey: {}
+      validateKey     : {}
     }
   };
   
@@ -49,16 +82,36 @@ var RedisWrapper = function (config) {
   
   var client;
   
-  client = new Redis({
-    host          : config.host,
-    port          : config.port,
-    db            : config.db_number,
-    retry_strategy: function (options) {
-      var error = options.error;
-      console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
-      return 5000;
-    }
-  });
+  if (config.sentinel_options) {
+    
+    console.info('REDIS CLIENT INITIATING WITH SENTINEL SUPPORT');
+    
+    client = new Redis({
+      sentinels     : config.sentinel_options.sentinels,
+      name          : config.sentinel_options.master_name,
+      db            : config.db_number,
+      retry_strategy: function (options) {
+        var error = options.error;
+        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
+        return 5000;
+      }
+    });
+    
+  }
+  else {
+    
+    client = new Redis({
+      host          : config.host,
+      port          : config.port,
+      db            : config.db_number,
+      retry_strategy: function (options) {
+        var error = options.error;
+        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
+        return 5000;
+      }
+    });
+    
+  }
   
   client.on("connect", function () {
     console.info('REDIS CLIENT CONNECTED TO SERVER');
