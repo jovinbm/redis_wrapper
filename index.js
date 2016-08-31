@@ -87,10 +87,10 @@ var RedisWrapper = function (config) {
     console.info('REDIS CLIENT INITIATING WITH SENTINEL SUPPORT');
     
     client = new Redis({
-      sentinels     : config.sentinel_options.sentinels,
-      name          : config.sentinel_options.name,
-      db            : config.db_number,
-      retry_strategy: function (options) {
+      sentinels    : config.sentinel_options.sentinels,
+      name         : config.sentinel_options.name,
+      db           : config.db_number,
+      retryStrategy: function (options) {
         var error = options.error;
         console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
         return 5000;
@@ -101,10 +101,10 @@ var RedisWrapper = function (config) {
   else {
     
     client = new Redis({
-      host          : config.host,
-      port          : config.port,
-      db            : config.db_number,
-      retry_strategy: function (options) {
+      host         : config.host,
+      port         : config.port,
+      db           : config.db_number,
+      retryStrategy: function (options) {
         var error = options.error;
         console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
         return 5000;
