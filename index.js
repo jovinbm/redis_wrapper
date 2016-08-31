@@ -87,13 +87,18 @@ var RedisWrapper = function (config) {
     console.info('REDIS CLIENT INITIATING WITH SENTINEL SUPPORT');
     
     client = new Redis({
-      sentinels    : config.sentinel_options.sentinels,
-      name         : config.sentinel_options.name,
-      db           : config.db_number,
-      retryStrategy: function (options) {
+      sentinels            : config.sentinel_options.sentinels,
+      name                 : config.sentinel_options.name,
+      db                   : config.db_number,
+      retryStrategy        : function (options) {
         var error = options.error;
-        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
-        return 5000;
+        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 10 seconds: ERROR = ', error);
+        return 10000;
+      },
+      sentinelRetryStrategy: function (options) {
+        var error = options.error;
+        console.error('A REDIS ERROR OCCURRED: SENTINELS ARE UNREACHABLE: RETRYING AFTER 30 seconds: ERROR = ', error);
+        return 30000;
       }
     });
     
@@ -106,8 +111,8 @@ var RedisWrapper = function (config) {
       db           : config.db_number,
       retryStrategy: function (options) {
         var error = options.error;
-        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
-        return 5000;
+        console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 10 seconds: ERROR = ', error);
+        return 10000;
       }
     });
     
@@ -118,7 +123,7 @@ var RedisWrapper = function (config) {
   });
   
   client.on("ready", function () {
-    console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number + " AT ADDRESS " + config.host + ":" + config.port);
+    console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number);
   });
   
   client.on("reconnecting", function () {
