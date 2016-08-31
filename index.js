@@ -53,9 +53,14 @@ var RedisWrapper = function (config) {
   var redis_client;
   
   redis_client = redis.createClient({
-    host: config.host,
-    port: config.port,
-    db  : config.db_number
+    host          : config.host,
+    port          : config.port,
+    db            : config.db_number,
+    retry_strategy: function (options) {
+      var error = options.error;
+      console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 5 seconds: ERROR = ', error);
+      return 5000;
+    }
   });
   
   redis_client.on("connect", function () {
