@@ -1,6 +1,6 @@
 {
   "name": "redis_wrapper",
-  "version": "0.0.37",
+  "version": "0.0.38",
   "description": "",
   "main": "index.js",
   "repository": {
@@ -18,5 +18,9 @@
     "cron": "^1.1.0",
     "ioredis": "^2.3.0",
     "redlock": "^2.0.0"
+  },
+  "devDependencies": {
+    "qs": "^6.2.1",
+    "underscore": "^1.8.3"
   }
 }
