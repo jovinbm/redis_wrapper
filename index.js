@@ -19,53 +19,83 @@ var RedisWrapper = function (config) {
   var self = this;
   
   var schema = {
-    type                : 'object',
-    additionalProperties: false,
-    required            : ['host', 'port', 'db_number', 'validateKey'],
-    properties          : {
-      sentinel_options: {
-        type                : 'object',
-        required            : ['name', 'sentinels'],
-        additionalProperties: false,
-        properties          : {
-          name     : {
-            type     : 'string',
-            minLength: 1
-          },
-          sentinels: {
-            type    : 'array',
-            minItems: 1,
-            items   : {
-              type                : 'object',
-              required            : ['host', 'port'],
-              additionalProperties: false,
-              properties          : {
-                host: {
-                  type     : 'string',
-                  minLength: 1
-                },
-                port: {
-                  type   : 'integer',
-                  minimum: 80
-                },
-              }
-            }
-          },
-        }
-      },
-      host            : {
+    definitions: {
+      host       : {
         type     : 'string',
         minLength: 1
       },
-      port            : {
+      port       : {
         type   : 'integer',
         minimum: 80
       },
-      db_number       : {
-        type: 'integer'
+      db_number  : {
+        type   : 'integer',
+        maximum: 16
       },
-      validateKey     : {}
-    }
+      validateKey: {}
+    },
+    oneOf      : [
+      {
+        type                : 'object',
+        additionalProperties: false,
+        required            : ['db_number', 'validateKey', 'sentinel_options'],
+        properties          : {
+          db_number       : {
+            $ref: '#/definitions/db_number'
+          },
+          validateKey     : {
+            $ref: '#/definitions/validateKey'
+          },
+          sentinel_options: {
+            type                : 'object',
+            required            : ['name', 'sentinels'],
+            additionalProperties: false,
+            properties          : {
+              name     : {
+                type     : 'string',
+                minLength: 1
+              },
+              sentinels: {
+                type    : 'array',
+                minItems: 1,
+                items   : {
+                  type                : 'object',
+                  required            : ['host', 'port'],
+                  additionalProperties: false,
+                  properties          : {
+                    host: {
+                      $ref: '#/definitions/host'
+                    },
+                    port: {
+                      $ref: '#/definitions/port'
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      {
+        type                : 'object',
+        additionalProperties: false,
+        required            : ['host', 'port', 'db_number', 'validateKey'],
+        properties          : {
+          host       : {
+            $ref: '#/definitions/host'
+          },
+          port       : {
+            $ref: '#/definitions/port'
+          },
+          db_number  : {
+            $ref: '#/definitions/db_number'
+          },
+          validateKey: {
+            $ref: '#/definitions/validateKey'
+          }
+        }
+      }
+    ]
   };
   
   var valid = ajv.validate(schema, config);
