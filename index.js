@@ -9,6 +9,7 @@ var ajv   = require("ajv")({
  * @param {number} config.db_number
  * @param {string} config.host
  * @param {number} config.port
+ * @param {string} config.key_prefix
  * @param {object} [config.sentinel_options]
  * @param {string} [config.sentinel_options.name]
  * @param {object[]} [config.sentinel_options.sentinels]
@@ -32,6 +33,10 @@ var RedisWrapper = function (config) {
         type   : 'integer',
         maximum: 16
       },
+      key_prefix : {
+        type     : 'string',
+        minLength: 1
+      },
       validateKey: {}
     },
     oneOf      : [
@@ -45,6 +50,9 @@ var RedisWrapper = function (config) {
           },
           validateKey     : {
             $ref: '#/definitions/validateKey'
+          },
+          key_prefix      : {
+            $ref: '#/definitions/key_prefix'
           },
           sentinel_options: {
             type                : 'object',
@@ -90,6 +98,9 @@ var RedisWrapper = function (config) {
           db_number  : {
             $ref: '#/definitions/db_number'
           },
+          key_prefix : {
+            $ref: '#/definitions/key_prefix'
+          },
           validateKey: {
             $ref: '#/definitions/validateKey'
           }
@@ -116,7 +127,7 @@ var RedisWrapper = function (config) {
     
     console.info('REDIS CLIENT INITIATING WITH SENTINEL SUPPORT');
     
-    client = new Redis({
+    const conf = {
       sentinels            : config.sentinel_options.sentinels,
       name                 : config.sentinel_options.name,
       db                   : config.db_number,
@@ -130,12 +141,18 @@ var RedisWrapper = function (config) {
         console.error('A REDIS ERROR OCCURRED: SENTINELS ARE UNREACHABLE: RETRYING AFTER 30 seconds: ERROR = ', error);
         return 30000;
       }
-    });
+    };
+    
+    if (config.key_prefix) {
+      conf.keyPrefix = config.key_prefix;
+    }
+    
+    client = new Redis(conf);
     
   }
   else {
     
-    client = new Redis({
+    const conf = {
       host         : config.host,
       port         : config.port,
       db           : config.db_number,
@@ -144,7 +161,13 @@ var RedisWrapper = function (config) {
         console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 10 seconds: ERROR = ', error);
         return 10000;
       }
-    });
+    };
+    
+    if (config.key_prefix) {
+      conf.keyPrefix = config.key_prefix;
+    }
+    
+    client = new Redis(conf);
     
   }
   
