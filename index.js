@@ -1,7 +1,9 @@
-var Redis = require('ioredis');
-var ajv   = require("ajv")({
+const Redis          = require('ioredis');
+const ajv            = require('ajv')({
   removeAdditional: false
 });
+const config_schema  = require('./config_schema');
+const configValidate = ajv.compile(config_schema);
 
 /**
  *
@@ -9,119 +11,30 @@ var ajv   = require("ajv")({
  * @param {number} config.db_number
  * @param {string} config.host
  * @param {number} config.port
- * @param {string} config.key_prefix
+ * @param {string} [config.key_prefix]
  * @param {object} [config.sentinel_options]
  * @param {string} [config.sentinel_options.name]
  * @param {object[]} [config.sentinel_options.sentinels]
  * @param {function} config.validateKey - function to validate the keys
  * @returns {*}
  */
-var RedisWrapper = function (config) {
-  var self = this;
+const RedisWrapper = function (config) {
+  const self = this;
   
-  var schema = {
-    definitions: {
-      host       : {
-        type     : 'string',
-        minLength: 1
-      },
-      port       : {
-        type   : 'integer',
-        minimum: 80
-      },
-      db_number  : {
-        type   : 'integer',
-        maximum: 16
-      },
-      key_prefix : {
-        type     : 'string',
-        minLength: 1
-      },
-      validateKey: {}
-    },
-    oneOf      : [
-      {
-        type                : 'object',
-        additionalProperties: false,
-        required            : ['db_number', 'validateKey', 'sentinel_options'],
-        properties          : {
-          db_number       : {
-            $ref: '#/definitions/db_number'
-          },
-          validateKey     : {
-            $ref: '#/definitions/validateKey'
-          },
-          key_prefix      : {
-            $ref: '#/definitions/key_prefix'
-          },
-          sentinel_options: {
-            type                : 'object',
-            required            : ['name', 'sentinels'],
-            additionalProperties: false,
-            properties          : {
-              name     : {
-                type     : 'string',
-                minLength: 1
-              },
-              sentinels: {
-                type    : 'array',
-                minItems: 1,
-                items   : {
-                  type                : 'object',
-                  required            : ['host', 'port'],
-                  additionalProperties: false,
-                  properties          : {
-                    host: {
-                      $ref: '#/definitions/host'
-                    },
-                    port: {
-                      $ref: '#/definitions/port'
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      {
-        type                : 'object',
-        additionalProperties: false,
-        required            : ['host', 'port', 'db_number', 'validateKey'],
-        properties          : {
-          host       : {
-            $ref: '#/definitions/host'
-          },
-          port       : {
-            $ref: '#/definitions/port'
-          },
-          db_number  : {
-            $ref: '#/definitions/db_number'
-          },
-          key_prefix : {
-            $ref: '#/definitions/key_prefix'
-          },
-          validateKey: {
-            $ref: '#/definitions/validateKey'
-          }
-        }
-      }
-    ]
-  };
-  
-  var valid = ajv.validate(schema, config);
+  const valid = configValidate(config);
   
   if (!valid) {
-    var e = new Error(ajv.errorsText());
+    const e = new Error(ajv.errorsText());
+    
     e.ajv = ajv.errors;
     throw e;
   }
   
   if (typeof config.validateKey !== 'function') {
-    throw new Error("config.validateKey is not a function");
+    throw new Error('config.validateKey is not a function');
   }
   
-  var client;
+  let client;
   
   if (config.sentinel_options) {
     
@@ -132,13 +45,17 @@ var RedisWrapper = function (config) {
       name                 : config.sentinel_options.name,
       db                   : config.db_number,
       retryStrategy        : function (options) {
-        var error = options.error;
+        const error = options.error;
+        
         console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 10 seconds: ERROR = ', error);
+        
         return 10000;
       },
       sentinelRetryStrategy: function (options) {
-        var error = options.error;
+        const error = options.error;
+        
         console.error('A REDIS ERROR OCCURRED: SENTINELS ARE UNREACHABLE: RETRYING AFTER 30 seconds: ERROR = ', error);
+        
         return 30000;
       }
     };
@@ -157,8 +74,10 @@ var RedisWrapper = function (config) {
       port         : config.port,
       db           : config.db_number,
       retryStrategy: function (options) {
-        var error = options.error;
+        const error = options.error;
+        
         console.error('A REDIS ERROR OCCURRED: RETRYING AFTER 10 seconds: ERROR = ', error);
+        
         return 10000;
       }
     };
@@ -171,24 +90,24 @@ var RedisWrapper = function (config) {
     
   }
   
-  client.on("connect", function () {
+  client.on('connect', () => {
     console.info('REDIS CLIENT CONNECTED TO SERVER');
   });
   
-  client.on("ready", function () {
-    console.info("REDIS CLIENT READY:: CONNECTED TO REDIS DB " + config.db_number);
+  client.on('ready', () => {
+    console.info(`REDIS CLIENT READY:: CONNECTED TO REDIS DB ${config.db_number}`);
   });
   
-  client.on("reconnecting", function () {
+  client.on('reconnecting', () => {
     console.warn('REDIS CLIENT RECONNECTING');
   });
   
-  client.on("error", function (e) {
+  client.on('error', (e) => {
     console.error('REDIS CLIENT ERROR');
     console.error(e);
   });
   
-  client.on("end", function () {
+  client.on('end', () => {
     console.error('REDIS CLIENT CONNECTION TO REDIS SERVER CLOSED');
   });
   
@@ -206,6 +125,31 @@ var RedisWrapper = function (config) {
   return self;
 };
 
-require('./lib/index')(RedisWrapper);
+RedisWrapper.prototype.rdel                               = require('./lib/del');
+RedisWrapper.prototype.rexists                            = require('./lib/exists');
+RedisWrapper.prototype.rflushdb                           = require('./lib/flushdb');
+RedisWrapper.prototype.rget                               = require('./lib/get');
+RedisWrapper.prototype.rhdel                              = require('./lib/hdel');
+RedisWrapper.prototype.rhexists                           = require('./lib/hexists');
+RedisWrapper.prototype.rhget                              = require('./lib/hget');
+RedisWrapper.prototype.rhgetall                           = require('./lib/hgetall');
+RedisWrapper.prototype.rhmget                             = require('./lib/hmget');
+RedisWrapper.prototype.rhmset                             = require('./lib/hmset');
+RedisWrapper.prototype.rhscan                             = require('./lib/hscan');
+RedisWrapper.prototype.rhset                              = require('./lib/hset');
+RedisWrapper.prototype.rmget                              = require('./lib/mget');
+RedisWrapper.prototype.rmset                              = require('./lib/mset');
+RedisWrapper.prototype.rset                               = require('./lib/set');
+RedisWrapper.prototype.rzadd                              = require('./lib/zadd');
+RedisWrapper.prototype.rzincrby                           = require('./lib/zincrby');
+RedisWrapper.prototype.rzrange                            = require('./lib/zrange');
+RedisWrapper.prototype.rzrangebyscore                     = require('./lib/zrangebyscore');
+RedisWrapper.prototype.rzrem                              = require('./lib/zrem');
+RedisWrapper.prototype.rzremrangebyscore                  = require('./lib/zremrangebyscore');
+RedisWrapper.prototype.rzrevrange                         = require('./lib/zrevrange');
+RedisWrapper.prototype.rzrevrangebyscore                  = require('./lib/zrevrangebyscore');
+//expire helpers
+RedisWrapper.prototype.prepareHashKeyExpireRepresentative = require('./lib/hash_key_expire').prepareHashKeyExpireRepresentative;
+RedisWrapper.prototype.removeExpiredHashKeys              = require('./lib/hash_key_expire').removeExpiredHashKeys;
 
 module.exports = RedisWrapper;
