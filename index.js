@@ -11,6 +11,7 @@ const configValidate = ajv.compile(config_schema);
  * @param {number} config.db_number
  * @param {string} config.host
  * @param {number} config.port
+ * @param {string} [config.password]
  * @param {string} [config.key_prefix]
  * @param {object} [config.sentinel_options]
  * @param {string} [config.sentinel_options.name]
@@ -81,6 +82,10 @@ const RedisWrapper = function (config) {
         return 10000;
       }
     };
+    
+    if (config.password) {
+      conf.password = config.password;
+    }
     
     if (config.key_prefix) {
       conf.keyPrefix = config.key_prefix;

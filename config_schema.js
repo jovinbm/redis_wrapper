@@ -8,6 +8,9 @@ module.exports = {
       type   : 'integer',
       minimum: 80
     },
+    password   : {
+      type: 'string'
+    },
     db_number  : {
       type   : 'integer',
       maximum: 16
@@ -50,11 +53,14 @@ module.exports = {
                 required            : ['host', 'port'],
                 additionalProperties: false,
                 properties          : {
-                  host: {
+                  host    : {
                     $ref: '#/definitions/host'
                   },
-                  port: {
+                  port    : {
                     $ref: '#/definitions/port'
+                  },
+                  password: {
+                    $ref: '#/definitions/password'
                   }
                 }
               }
@@ -73,6 +79,9 @@ module.exports = {
         },
         port       : {
           $ref: '#/definitions/port'
+        },
+        password   : {
+          $ref: '#/definitions/password'
         },
         db_number  : {
           $ref: '#/definitions/db_number'
