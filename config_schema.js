@@ -5,15 +5,13 @@ module.exports = {
       minLength: 1
     },
     port       : {
-      type   : 'integer',
-      minimum: 80
+      type: ['integer', 'string']
     },
     password   : {
       type: 'string'
     },
     db_number  : {
-      type   : 'integer',
-      maximum: 16
+      type: ['integer', 'string']
     },
     key_prefix : {
       type     : 'string',
