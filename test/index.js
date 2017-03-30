@@ -2,8 +2,9 @@ const tape                 = require('tape');
 const RedisWrapper         = require('../index');
 const config               = {
   host     : 'localhost',
-  port     : 6381,
+  port     : 4020,
   db_number: 15,
+  password : 'a',
   validateKey(){
     return true;
   }
